@@ -1,3 +1,4 @@
+import 'package:farmatodo/widget/IU/inputFiel.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,7 +23,7 @@ class _AgregarItem extends State<AgregarItem> {
   final descript_item = TextEditingController();
   final sku_item = TextEditingController();
   final codbar_item = TextEditingController();
-  final fech_venc = TextEditingController();
+  //final fech_venc = TextEditingController();
 
   final _scrollController = ScrollController();
   final _searchController = TextEditingController();
@@ -76,33 +77,33 @@ class _AgregarItem extends State<AgregarItem> {
   }
 
   //agregar un item nuevo a la iventario actual
-  /*Future<void> AgregarItem() async {
+  Future<void> addItem() async {
     if (descript_item.text.isEmpty ||
         sku_item.text.isEmpty ||
-        codbar_item.text.isEmpty ||
-        fech_venc.text.isEmpty) {
+        codbar_item.text.isEmpty) {
+      mostrarMensaje("❌ debellenar todos los campos");
       return;
     }
     try {
       await supabase.from("items").insert({
+        "id_invent": widget.id_invent,
         "descript_item": descript_item.text,
         "sku_item": sku_item.text,
         "codbar_item": codbar_item.text,
-        "fech_venc": fech_venc.text,
       });
       //queda pendiente la fecha de retiro y por ende la funcion correspondiente para calcularla
       mostrarMensaje("✅ Inventario agregado correctamente");
     } catch (e) {
-      print("❌ Error al guardar la información $e");
+      mostrarMensaje("❌ Error al guardar la información");
+      print(e);
       return;
     }
 
     descript_item.clear();
     sku_item.clear();
     codbar_item.clear();
-    fech_venc.clear();
     await cargaritems();
-  }*/
+  }
 
   //editar el inventario elegido
   /*Future<void> EditarInventario(Map<String, dynamic> invent) async {
@@ -231,90 +232,6 @@ class _AgregarItem extends State<AgregarItem> {
     );
   }*/
 
-  //estructura de los inputs
-  Widget _inputField(
-    TextEditingController controller,
-    IconData icon,
-    bool enable,
-    String label, {
-    bool obscure = false,
-  }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: const Color(0xFF0077C8)),
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color(0xFF0077C8), width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      enabled: enable,
-    );
-  }
-
-  //inputField de fecha
-  Widget _inputFieldDatePicker({
-    required TextEditingController controller,
-    required IconData icon,
-    required bool enable,
-    required String label,
-    bool obscure = false,
-    required BuildContext context, // Necesario para mostrar el DatePicker
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscure,
-      enabled: enable,
-      readOnly: true, // Hace que no se pueda escribir manualmente
-      onTap: () async {
-        if (enable) {
-          DateTime? pickedDate = await showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(1900),
-            lastDate: DateTime(2100),
-            builder: (context, child) {
-              return Theme(
-                data: Theme.of(context).copyWith(
-                  colorScheme: ColorScheme.light(
-                    primary: const Color(
-                      0xFF0077C8,
-                    ), // Color primario del botón
-                    onPrimary: Colors.white,
-                  ),
-                ),
-                child: child!,
-              );
-            },
-          );
-
-          if (pickedDate != null) {
-            // Formatear la fecha (puedes cambiar el formato según necesites)
-            String formattedDate =
-                "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-            controller.text = formattedDate;
-          }
-        }
-      },
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: const Color(0xFF0077C8)),
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color(0xFF0077C8), width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        suffixIcon: Icon(
-          Icons.calendar_today,
-          color: const Color(0xFF0077C8),
-        ), // Icono adicional
-      ),
-    );
-  }
-
   //widget de un field tipo lista
   Widget _dropdownField({
     required String label,
@@ -384,7 +301,7 @@ class _AgregarItem extends State<AgregarItem> {
       backgroundColor: const Color(0xFFF4F6F8),
       appBar: AppBar(
         title: Text(
-          "Gestion de ${widget.nomb_invent}",
+          "Gestión de ${widget.nomb_invent}",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -407,28 +324,25 @@ class _AgregarItem extends State<AgregarItem> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _inputField(
-                        descript_item,
-                        Icons.person_outline,
-                        true,
-                        "Descripción",
-                      ),
-                      const SizedBox(height: 10),
-                      _inputField(sku_item, Icons.person_outline, true, "SKU"),
-                      const SizedBox(height: 10),
-                      _inputField(
-                        codbar_item,
-                        Icons.person_outline,
-                        true,
-                        "Código de Barra",
-                      ),
-                      const SizedBox(height: 10),
-                      _inputFieldDatePicker(
-                        controller: fech_venc,
-                        icon: Icons.calendar_month,
+                      inputField_Text(
+                        controller: descript_item,
+                        icon: Icons.text_format_outlined,
                         enable: true,
-                        label: 'Fecha de Vencimiento',
-                        context: context,
+                        label: "Descripción",
+                      ),
+                      const SizedBox(height: 15),
+                      inputField_Text(
+                        controller: sku_item,
+                        icon: Icons.code_outlined,
+                        enable: true,
+                        label: "SKU Item",
+                      ),
+                      const SizedBox(height: 15),
+                      inputField_Text(
+                        controller: codbar_item,
+                        icon: Icons.barcode_reader,
+                        enable: true,
+                        label: "Codigo de barra",
                       ),
                       const SizedBox(height: 15),
 
@@ -448,8 +362,7 @@ class _AgregarItem extends State<AgregarItem> {
                             ),
                           ),
                           onPressed: () {
-                            //AgregarItem();
-                            mostrarMensaje("Agregar");
+                            addItem();
                           },
                         ),
                       ),
@@ -567,7 +480,9 @@ class _AgregarItem extends State<AgregarItem> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              subtitle: Text(item['sku_item'].toString()),
+                              subtitle: Text(
+                                "SKU: ${item['sku_item'].toString()}",
+                              ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [

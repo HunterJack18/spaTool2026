@@ -956,7 +956,7 @@ class _MedicamentosPageState extends State<MedicamentosPage> {
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: AppBar(
-        title: const Text('Gestión de Medicamentos',
+        title: const Text('Seguimiento de Proximos',
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
         backgroundColor: _surfaceColor,
         foregroundColor: _primaryColor,
