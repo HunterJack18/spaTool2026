@@ -652,9 +652,8 @@ String formatearFechaParaDB(String fechaStr) {
 
 Future<void> nuevoseguimiento(
   TextEditingController idItem,
-  TextEditingController fechaRetiroController,
   TextEditingController fechaVencController,
-
+  TextEditingController fechaRetiroController,
 
 ) async {
   final supabase = Supabase.instance.client;

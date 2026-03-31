@@ -146,7 +146,7 @@ class _MedicamentosPage2State extends State<MedicamentosPage2> {
         // 1. Extraer y procesar los datos del seguimiento
         final seguimiento = ItemSeguimiento.fromMap(row);
         seguimientos.add(seguimiento);
-
+        print("${seguimiento.fechaVenc} ${seguimiento.fechaRetiro}");
         // 2. Extraer y procesar los datos del item relacionado
         final itemData = row['items'] as Map<String, dynamic>?;
 
