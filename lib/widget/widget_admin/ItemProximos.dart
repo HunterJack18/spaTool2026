@@ -252,7 +252,6 @@ class FormNuevoSeg extends StatefulWidget {
 }
 
 class _FormNuevoSegState extends State<FormNuevoSeg> {
-
   void actualizarFechaRetiro(DateTime fecha) {
     DateTime fechaRetiro = calcularFechaRetiro(fecha);
 
@@ -348,7 +347,7 @@ DateTime calcularFechaRetiro(DateTime fechavencimiento) {
 
 //#########################################################################################
 
-void MostrarModal(context, {ItemMedicamento? editar}) {
+Future<bool> MostrarModal(context, {ItemMedicamento? editar}) async {
   //controller del formulario
   final skuController = TextEditingController();
   final descripcionController = TextEditingController();
@@ -427,7 +426,7 @@ void MostrarModal(context, {ItemMedicamento? editar}) {
     });
   });
 
-  showModalBottomSheet(
+  final bool? resultado = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -476,7 +475,7 @@ void MostrarModal(context, {ItemMedicamento? editar}) {
                     ),
                     const Spacer(),
                     IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => Navigator.of(context).pop(false),
                       icon: Icon(Icons.close_rounded, color: ColorTheme[1]),
                     ),
                   ],
@@ -555,7 +554,7 @@ void MostrarModal(context, {ItemMedicamento? editar}) {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => Navigator.of(context).pop(false),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -574,8 +573,8 @@ void MostrarModal(context, {ItemMedicamento? editar}) {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          nuevoseguimiento(
+                        onPressed: () async {
+                          await nuevoseguimiento(
                             id_item,
                             fechaVencController,
                             fechaRetiroController,
@@ -588,7 +587,9 @@ void MostrarModal(context, {ItemMedicamento? editar}) {
                             id_item,
                             fechaVencController,
                             fechaRetiroController,
-                          ]); 
+                          ]);
+                          Navigator.of(context).pop(true);
+                          
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: ColorTheme[0],
@@ -615,6 +616,7 @@ void MostrarModal(context, {ItemMedicamento? editar}) {
       },
     ),
   );
+  return resultado ?? false;
 }
 
 //#########################################################################################
@@ -623,23 +625,21 @@ void MostrarModal(context, {ItemMedicamento? editar}) {
 
 //#########################################################################################
 
-
 String formatearFechaParaDB(String fechaStr) {
-    if (fechaStr.isEmpty) return '';
-    try {
-      final parts = fechaStr.split('/');
-      if (parts.length == 3) {
-        final day = parts[0].padLeft(2, '0');
-        final month = parts[1].padLeft(2, '0');
-        final year = parts[2];
-        return '$year-$month-$day';  // ✅ Formato correcto para Supabase
-      }
-    } catch (e) {
-      print('Error formateando fecha: $e');
+  if (fechaStr.isEmpty) return '';
+  try {
+    final parts = fechaStr.split('/');
+    if (parts.length == 3) {
+      final day = parts[0].padLeft(2, '0');
+      final month = parts[1].padLeft(2, '0');
+      final year = parts[2];
+      return '$year-$month-$day'; // ✅ Formato correcto para Supabase
     }
-    return fechaStr;
+  } catch (e) {
+    print('Error formateando fecha: $e');
   }
-
+  return fechaStr;
+}
 
 //#########################################################################################
 
@@ -647,14 +647,10 @@ String formatearFechaParaDB(String fechaStr) {
 
 //#########################################################################################
 
-
-
-
 Future<void> nuevoseguimiento(
   TextEditingController idItem,
   TextEditingController fechaVencController,
   TextEditingController fechaRetiroController,
-
 ) async {
   final supabase = Supabase.instance.client;
 
@@ -665,8 +661,6 @@ Future<void> nuevoseguimiento(
       'fech_retiro': formatearFechaParaDB(fechaRetiroController.text),
       'status': 'en seguimiento',
     });
-
-  
   } catch (e) {
     print("errror $e");
   }

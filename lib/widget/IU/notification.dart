@@ -6,7 +6,7 @@ class mostrarSnackBar {
     BuildContext context, {
     required String mensaje,
     required Color colorFondo,
-    Duration duracion = const Duration(seconds: 3),
+    Duration duracion = const Duration(seconds: 4),
     IconData? icono,
   }) {
     ScaffoldMessenger.of(context).showSnackBar(

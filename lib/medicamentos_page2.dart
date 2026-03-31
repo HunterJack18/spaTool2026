@@ -348,7 +348,18 @@ class _MedicamentosPage2State extends State<MedicamentosPage2> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => MostrarModal(context),
+        onPressed: () async {
+          bool? saved = await MostrarModal(context);
+          // Si se guardó algo, recarga los datos
+          if (saved == true) {
+            await _cargarSeguimientos();
+            
+            // Opcional: mostrar mensaje de éxito
+            if (mounted) {
+              mostrarSnackBar.success(context, 'Seguimiento agregado correctamente');
+            }
+    }
+        },
         backgroundColor: ColorTheme[0],
         child: const Icon(Icons.add, color: Colors.white),
       ),
