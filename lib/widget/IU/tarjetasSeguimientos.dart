@@ -1,4 +1,4 @@
-import 'package:farmatodo/widget/IU/notification.dart';
+import 'package:farmatodo/widget/IU/snackBar.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmatodo/config/themes/themes.dart';
@@ -44,9 +44,9 @@ class TarjetaSeguimiento extends StatelessWidget {
   String _calcularDiasRestantes(DateTime? fechaVencimiento) {
     if (fechaVencimiento == null) return 'Fecha no disponible';
     final d = _diasParaVencer(fechaVencimiento);
-    if (d < 0) return 'Vencido hace ${d.abs()} días';
-    if (d == 0) return 'Vence hoy';
-    if (d == 1) return 'Vence en 1 día';
+    if (d < 0) return 'Haber retirado hace ${d.abs()} días';
+    if (d == 0) return 'Retirar hoy';
+    if (d == 1) return 'Retirar en 1 día';
     return 'Vence en $d días';
   }
 
@@ -72,7 +72,7 @@ class TarjetaSeguimiento extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dias = _diasParaVencer(seguimiento.fechaVenc);
+    final dias = _diasParaVencer(seguimiento.fechaRetiro);
     final vencido = dias < 0;
     final cerca = dias >= 0 && dias <= diasCerca;
     Color estadoColor = ColorTheme[2]; // verde para OK
@@ -82,11 +82,11 @@ class TarjetaSeguimiento extends StatelessWidget {
     if (vencido) {
       estadoColor = ColorTheme[4]; // rojo
       estadoIcon = Icons.error_rounded;
-      estadoTexto = 'VENCIDO';
+      estadoTexto = 'PASADA LA FECHA DE RETIRO';
     } else if (cerca) {
-      estadoColor = ColorTheme[4]; // rojo/amarillo
+      estadoColor = ColorTheme[3]; // rojo/amarillo
       estadoIcon = Icons.warning_rounded;
-      estadoTexto = '¡CERCA DE VENCER!';
+      estadoTexto = '¡CERCA DE RETIRAR!';
     }
 
     return Container(
@@ -165,7 +165,7 @@ class TarjetaSeguimiento extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          _calcularDiasRestantes(seguimiento.fechaVenc),
+                          _calcularDiasRestantes(seguimiento.fechaRetiro),
                           style: TextStyle(
                             color: estadoColor,
                             fontWeight: FontWeight.w900,
@@ -247,7 +247,7 @@ class TarjetaSeguimiento extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: estadoColor.withOpacity(0.06),
+                color: ColorTheme[0].withOpacity(0.06),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: estadoColor.withOpacity(0.12)),
               ),
@@ -255,7 +255,7 @@ class TarjetaSeguimiento extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.calendar_today_rounded,
-                    color: estadoColor,
+                    color: ColorTheme[0],
                     size: 18,
                   ),
                   const SizedBox(width: 10),
@@ -264,7 +264,7 @@ class TarjetaSeguimiento extends StatelessWidget {
                       'Vence el ${_formatearFecha(seguimiento.fechaVenc)}',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        color: estadoColor,
+                        color: ColorTheme[0],
                       ),
                     ),
                   ),
@@ -277,7 +277,7 @@ class TarjetaSeguimiento extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: ColorTheme[0].withOpacity(0.06),
+                color:estadoColor.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: ColorTheme[0].withOpacity(0.12)),
               ),
@@ -285,7 +285,7 @@ class TarjetaSeguimiento extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.calendar_today_rounded,
-                    color: ColorTheme[0],
+                    color: estadoColor,
                     size: 18,
                   ),
                   const SizedBox(width: 10),
@@ -294,7 +294,7 @@ class TarjetaSeguimiento extends StatelessWidget {
                       'Retirar el ${_formatearFecha(seguimiento.fechaRetiro)}',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        color: ColorTheme[0],
+                        color: estadoColor,
                       ),
                     ),
                   ),

@@ -19,11 +19,11 @@ class NotificationService {
   Future<void> initialize() async {
     // Inicializar zona horaria
     tz_data.initializeTimeZones();
-    
+
     // Configuración Android
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    
+
     // Configuración iOS
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
@@ -34,29 +34,30 @@ class NotificationService {
       defaultPresentBadge: true,
       defaultPresentSound: true,
     );
-    
+
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
-    
-    // Inicializar con callback
+
+    // Inicializar con callback para cuando se pulsa la notificación
     await _notifications.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
         print('🔔 Notificación pulsada: ${details.payload}');
+        // Aquí puedes agregar navegación
       },
     );
-    
+
     // Crear canales para Android
     await _createNotificationChannels();
-    
+
     // Solicitar permiso para Android 13+
     await _requestAndroidPermissions();
-    
+
     print('✅ NotificationService inicializado correctamente');
   }
-  
+
   Future<void> _createNotificationChannels() async {
     if (defaultTargetPlatform == TargetPlatform.android) {
       const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -66,26 +67,30 @@ class NotificationService {
         importance: Importance.high,
         playSound: true,
       );
-      
-      await _notifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
-      
+
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+
       print('✅ Canal de notificaciones creado');
     }
   }
-  
+
   Future<void> _requestAndroidPermissions() async {
     if (defaultTargetPlatform == TargetPlatform.android) {
-      await _notifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
       print('✅ Permiso de notificaciones solicitado');
     }
   }
 
-  // ✅ MÉTODO DE PRUEBA - Notificación inmediata
+  // ✅ Notificación inmediata de prueba
   Future<void> showTestNotification() async {
     print('🔔 Intentando mostrar notificación de prueba...');
-    
+
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'medication_retirement_channel',
       'Recordatorios de Retiro',
@@ -93,21 +98,21 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
     );
-    
+
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
-    
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
-    
+
     await _notifications.show(
       999999,
       '🔔 Notificación de Prueba',
       'Si ves esto, el plugin funciona correctamente',
       details,
     );
-    
+
     print('✅ Notificación de prueba enviada');
   }
 
@@ -142,26 +147,29 @@ class NotificationService {
     String? additionalInfo,
   }) async {
     try {
-      final notificationId = '${NOTIFICATION_PREFIX}$idSeguimiento${daysBefore}d'.hashCode.abs();
-      
-      // Forzar hora a las 00:00 AM
+      final notificationId =
+          '${NOTIFICATION_PREFIX}$idSeguimiento${daysBefore}d'.hashCode.abs();
+
+      // ✅ Forzar hora a las 00:00 AM (medianoche)
       final dateAtMidnight = DateTime(
         scheduledDate.year,
         scheduledDate.month,
         scheduledDate.day,
-        8, 0, 0,
+        0, // Hora 0
+        0, // Minuto 0
+        0, // Segundo 0
       );
-      
+
       final tz.TZDateTime tzDate = tz.TZDateTime.from(dateAtMidnight, tz.local);
-      
+
       if (tzDate.isBefore(tz.TZDateTime.now(tz.local))) {
-        print('⏰ Fecha ya pasada, no se programa');
+        print('⏰ Fecha ya pasada, no se programa: $scheduledDate');
         return false;
       }
-      
+
       String title;
       String body;
-      
+
       switch (daysBefore) {
         case 7:
           title = '⚠️ Recordatorio de Retiro';
@@ -179,21 +187,22 @@ class NotificationService {
           title = '📅 Recordatorio de Retiro';
           body = '$medicationName debe retirarse en $daysBefore días';
       }
-      
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
         'medication_retirement_channel',
         'Recordatorios de Retiro',
         importance: Importance.high,
         priority: Priority.high,
       );
-      
+
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
-      
+
       const NotificationDetails details = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
-      
+
       await _notifications.zonedSchedule(
         notificationId,
         title,
@@ -205,16 +214,17 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         payload: '/seguimiento/$idSeguimiento',
       );
-      
-      print('✅ Notificación programada: $medicationName - ${daysBefore} días antes');
+
+      print(
+          '✅ Notificación programada: $medicationName - ${daysBefore} días antes');
       return true;
     } catch (e) {
       print('❌ Error programando notificación: $e');
       return false;
     }
   }
-  
-  // Programar múltiples alertas
+
+  // Programar múltiples alertas para un seguimiento
   Future<void> scheduleMultipleAlerts({
     required String idSeguimiento,
     required String medicationName,
@@ -231,19 +241,21 @@ class NotificationService {
       );
     }
   }
-  
+
   // Cancelar notificaciones de un seguimiento
   Future<void> cancelNotificationsForSeguimiento(String idSeguimiento) async {
     final daysList = [7, 3, 1];
     for (int days in daysList) {
-      final notificationId = '${NOTIFICATION_PREFIX}$idSeguimiento${days}d'.hashCode.abs();
+      final notificationId =
+          '${NOTIFICATION_PREFIX}$idSeguimiento${days}d'.hashCode.abs();
       await _notifications.cancel(notificationId);
     }
     print('🗑️ Notificaciones canceladas para: $idSeguimiento');
   }
-  
-  // Cancelar todas
+
+  // Cancelar todas las notificaciones
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
+    print('🗑️ Todas las notificaciones canceladas');
   }
 }

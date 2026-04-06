@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:farmatodo/config/themes/themes.dart';
 import 'package:farmatodo/widget/IU/inputFiel.dart';
-import 'package:farmatodo/widget/IU/notification.dart';
+import 'package:farmatodo/widget/IU/snackBar.dart';
 import 'package:farmatodo/models/medicamento.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
@@ -337,7 +337,7 @@ DateTime calcularFechaRetiro(DateTime fechavencimiento) {
   return DateTime(
     fechavencimiento.year,
     fechavencimiento.month - 3,
-    fechavencimiento.day,
+    10,
   );
 }
 

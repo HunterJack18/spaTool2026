@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:farmatodo/medicamentos_page2.dart';
-import 'package:farmatodo/widget/IU/notification.dart';
+import 'package:farmatodo/widget/IU/snackBar.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'ajustes_page.dart';

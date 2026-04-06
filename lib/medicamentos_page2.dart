@@ -1,10 +1,14 @@
-import 'package:farmatodo/widget/IU/notification.dart';
+
+import 'package:farmatodo/services/medication_notification_scheduler.dart';
+import 'package:farmatodo/services/notification_services.dart';
+import 'package:farmatodo/services/workmanager_service.dart';
 import 'package:flutter/material.dart';
 import 'package:farmatodo/config/themes/themes.dart';
 import 'package:farmatodo/widget/widget_admin/ItemProximos.dart';
 import 'package:farmatodo/widget/IU/tarjetasSeguimientos.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmatodo/models/medicamento.dart';
+import 'package:farmatodo/widget/IU/snackBar.dart';
 
 class MedicamentosPage2 extends StatefulWidget {
   const MedicamentosPage2({super.key});
@@ -33,6 +37,9 @@ class _MedicamentosPage2State extends State<MedicamentosPage2> {
   final TextEditingController searchController = TextEditingController();
   String searchText = '';
 
+  final MedicationNotificationScheduler _scheduler =
+      MedicationNotificationScheduler();
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +49,21 @@ class _MedicamentosPage2State extends State<MedicamentosPage2> {
       final v = searchController.text.trim();
       if (v != searchText) setState(() => searchText = v);
     });
+
+    // Programar notificaciones después de cargar
+    _scheduleNotificationsAfterLoad();
+  }
+
+  Future<void> _scheduleNotificationsAfterLoad() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        await _scheduler.scheduleAllNotifications(user.id);
+        await WorkManagerService.registerPeriodicTasks(user.id);
+      }
+    } catch (e) {
+      print('Error programando notificaciones: $e');
+    }
   }
 
   @override
@@ -146,7 +168,6 @@ class _MedicamentosPage2State extends State<MedicamentosPage2> {
         // 1. Extraer y procesar los datos del seguimiento
         final seguimiento = ItemSeguimiento.fromMap(row);
         seguimientos.add(seguimiento);
-        print("${seguimiento.fechaVenc} ${seguimiento.fechaRetiro}");
         // 2. Extraer y procesar los datos del item relacionado
         final itemData = row['items'] as Map<String, dynamic>?;
 
@@ -294,6 +315,13 @@ class _MedicamentosPage2State extends State<MedicamentosPage2> {
         elevation: 1,
         shadowColor: Colors.black12,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active),
+            onPressed: () async {
+              await NotificationService().showTestNotification();
+              mostrarSnackBar.success(context, 'Notificación de prueba enviada');
+            },
+          ),
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: ColorTheme[0]),
             onPressed: _cargarSeguimientos,

@@ -1,6 +1,8 @@
+import 'package:farmatodo/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:farmatodo/services/workmanager_service.dart';
 import 'screens/auth/login_page.dart';
 
 void main() async {
@@ -8,9 +10,16 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']??'', 
-    anonKey: dotenv.env['SUPABASE_ANNON_KEY']??''
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANNON_KEY'] ?? '',
   );
+
+  // ✅ Inicializar servicio de notificaciones
+  await NotificationService().initialize();
+
+  // ✅ Inicializar WorkManager para tareas en segundo plano
+  await WorkManagerService.initialize();
+
   runApp(const FarmatodoApp());
 }
 
@@ -46,7 +55,7 @@ class FarmatodoApp extends StatelessWidget {
       ),
       initialRoute: LoginPage.routname,
       routes: {
-        LoginPage.routname: (context) => const LoginPage()
+        LoginPage.routname: (context) => const LoginPage(),
       },
     );
   }
