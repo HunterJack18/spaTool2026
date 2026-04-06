@@ -1,14 +1,12 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:farmatodo/medicamentos_page2.dart';
-import 'package:farmatodo/widget/IU/snackBar.dart';
+import 'package:farmatodo/widget/IU/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'ajustes_page.dart';
 import 'screens/admin/admin_home.dart';
-import 'package:farmatodo/services/notification_services.dart';
-import 'package:farmatodo/services/medication_notification_scheduler.dart';
-import 'package:farmatodo/services/workmanager_service.dart';
+import 'package:farmatodo/config/themes/themes.dart';
 
 class HomePage extends StatefulWidget {
   final String nombre;
@@ -18,8 +16,6 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
-
-  
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
@@ -53,15 +49,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // Config de "por vencer"
   static const int _diasPorVencer = 30;
 
-
-
   @override
   void initState() {
     super.initState();
-
-    _initializeNotificationServices();
-
-    _cargarInventarioUsuario();
 
     _bgCtrl = AnimationController(
       vsync: this,
@@ -86,27 +76,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       if (v != _tipIndex) setState(() => _tipIndex = v);
     });
 
+    // ✅ 1) Cargar inventario del usuario (idInvent dinámico)
+    // ✅ 2) Luego cargar resumen real (stock / por vencer)
     _cargarInventarioUsuario();
-  }
-
-  Future<void> _initializeNotificationServices() async {
-    try {
-      // Inicializar servicio de notificaciones
-      await NotificationService().initialize();
-      
-      // Inicializar WorkManager
-      await WorkManagerService.initialize();
-      
-      // Programar notificaciones si hay usuario
-      final user = _supabase.auth.currentUser;
-      if (user != null) {
-        final scheduler = MedicationNotificationScheduler();
-        await scheduler.scheduleAllNotifications(user.id);
-        await WorkManagerService.registerPeriodicTasks(user.id);
-      }
-    } catch (e) {
-      print('Error inicializando notificaciones: $e');
-    }
   }
 
   @override
@@ -117,7 +89,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  
   void _msg(String text) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -207,6 +178,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         _loadingInvent = false;
       });
 
+      // ✅ Con inventario asignado => cargar resumen real
       await _cargarResumenDashboard();
     } catch (e) {
       setState(() {
@@ -503,13 +475,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => MedicamentosPage2(),
-                              ),
-                            );
-                          },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MedicamentosPage2(),
+                            ),
+                          );
+                        },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF00B4D8),
                             foregroundColor: Colors.white,
@@ -679,9 +651,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  
-
-
   // ================== UI PRINCIPAL ==================
   @override
   Widget build(BuildContext context) {
@@ -698,7 +667,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => MedicamentosPage2()),
+            MaterialPageRoute(
+              builder: (_) => MedicamentosPage2(),
+            ),
           );
         },
       ),
@@ -1279,7 +1250,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         subtitle: "Historial",
                         icon: Icons.receipt_long_rounded,
                         onTap: () {
-                          mostrarSnackBar.info(context, "Proximamente");
+                          mostrarSnackBar.info(context,"Proximamente");
                         }, //_msg("Movimientos: próximamente 😄"),
                       ),
                       if (isAdmin)

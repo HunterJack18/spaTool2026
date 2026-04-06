@@ -1,8 +1,7 @@
-import 'package:farmatodo/services/medication_notification_scheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:farmatodo/config/themes/themes.dart';
 import 'package:farmatodo/widget/IU/inputFiel.dart';
-import 'package:farmatodo/widget/IU/snackBar.dart';
+import 'package:farmatodo/widget/IU/notification.dart';
 import 'package:farmatodo/models/medicamento.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
@@ -348,7 +347,7 @@ DateTime calcularFechaRetiro(DateTime fechavencimiento) {
 
 //#########################################################################################
 
-Future<bool> MostrarModal(context, {ItemSeguimiento? editar}) async {
+Future<bool> MostrarModal(context, {ItemMedicamento? editar}) async {
   //controller del formulario
   final skuController = TextEditingController();
   final descripcionController = TextEditingController();
@@ -356,14 +355,13 @@ Future<bool> MostrarModal(context, {ItemSeguimiento? editar}) async {
   final codigoBarrasController = TextEditingController();
   final id_item = TextEditingController();
 
-  final id_seguimiento = TextEditingController();
-
   //Fecha de retiro
   final fechaVencController = TextEditingController();
   final fechaRetiroController = TextEditingController();
 
   //controller para la barra de busqueda
   final barraBusquedaItem = TextEditingController();
+  final String searchtext = "";
 
   //para menejar los resultados
   ValueNotifier<bool> isSearching = ValueNotifier(false);
@@ -459,13 +457,17 @@ Future<bool> MostrarModal(context, {ItemSeguimiento? editar}) async {
                         color: ColorTheme[0].withOpacity(0.12),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(Icons.add_rounded,
+                      child: Icon(
+                        editar == null ? Icons.add_rounded : Icons.edit_rounded,
                         color: ColorTheme[0],
                         size: 22,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text('Nuevo Seguimiento',
+                    Text(
+                      editar == null
+                          ? 'Nuevo Seguimiento'
+                          : 'Editar Medicamento',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -651,30 +653,14 @@ Future<void> nuevoseguimiento(
   TextEditingController fechaRetiroController,
 ) async {
   final supabase = Supabase.instance.client;
-  final scheduler = MedicationNotificationScheduler();
-  
+
   try {
-    final response = await supabase.from("Proximos_itemVencer").insert({
+    await supabase.from("Proximos_itemVencer").insert({
       'id_item': idItem.text,
       'fech_venc': formatearFechaParaDB(fechaVencController.text),
       'fech_retiro': formatearFechaParaDB(fechaRetiroController.text),
       'status': 'en seguimiento',
     });
-    // Obtener el ID del nuevo seguimiento
-    final newId = response[0]['id_seguimiento'].toString();
-    final fechaRetiro = DateTime.parse(fechaRetiroController.text);
-
-     // Obtener el nombre del medicamento
-    final itemResponse = await supabase
-        .from('items')
-        .select('item_nomb')
-        .eq('id_item', idItem.text)
-        .single();
-
-    final nombreMedicamento = itemResponse['item_nomb']?.toString() ?? 'Medicamento';
-    
-    // Programar notificaciones para este seguimiento
-    await scheduler.rescheduleForSeguimiento(newId);
   } catch (e) {
     print("errror $e");
   }

@@ -1,4 +1,4 @@
-import 'package:farmatodo/widget/IU/snackBar.dart';
+import 'package:farmatodo/widget/IU/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:farmatodo/config/themes/themes.dart';
@@ -21,10 +21,10 @@ class TarjetaSeguimiento extends StatelessWidget {
     this.itemInfo,
     this.onEditar,
     this.onEliminar,
-    this.diasCerca = 10,
+    this.diasCerca = 15,
   });
 
-  // Función para calcular días hasta DE RETIRO
+  // Función para calcular días hasta el vencimiento
   int _diasParaVencer(DateTime? fechaVenc) {
     if (fechaVenc == null)
       return 999999; // Valor grande para que no se considere cerca
@@ -45,9 +45,9 @@ class TarjetaSeguimiento extends StatelessWidget {
     if (fechaVencimiento == null) return 'Fecha no disponible';
     final d = _diasParaVencer(fechaVencimiento);
     if (d < 0) return 'Vencido hace ${d.abs()} días';
-    if (d == 0) return 'Retirar hoy';
-    if (d == 1) return 'Retirar en 1 día';
-    return 'Retirar en $d días';
+    if (d == 0) return 'Vence hoy';
+    if (d == 1) return 'Vence en 1 día';
+    return 'Vence en $d días';
   }
 
   // Obtener información del item (nombre, etc.)
@@ -72,10 +72,9 @@ class TarjetaSeguimiento extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dias = _diasParaVencer(seguimiento.fechaRetiro);
+    final dias = _diasParaVencer(seguimiento.fechaVenc);
     final vencido = dias < 0;
-    final cerca = dias <= diasCerca;
-
+    final cerca = dias >= 0 && dias <= diasCerca;
     Color estadoColor = ColorTheme[2]; // verde para OK
     IconData estadoIcon = Icons.check_circle_rounded;
     String estadoTexto = 'En buen estado';
@@ -85,9 +84,9 @@ class TarjetaSeguimiento extends StatelessWidget {
       estadoIcon = Icons.error_rounded;
       estadoTexto = 'VENCIDO';
     } else if (cerca) {
-      estadoColor = ColorTheme[3]; // warring
+      estadoColor = ColorTheme[4]; // rojo/amarillo
       estadoIcon = Icons.warning_rounded;
-      estadoTexto = '¡CERCA DE RETIRAR!';
+      estadoTexto = '¡CERCA DE VENCER!';
     }
 
     return Container(
@@ -166,7 +165,7 @@ class TarjetaSeguimiento extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          _calcularDiasRestantes(seguimiento.fechaRetiro),
+                          _calcularDiasRestantes(seguimiento.fechaVenc),
                           style: TextStyle(
                             color: estadoColor,
                             fontWeight: FontWeight.w900,
@@ -362,7 +361,7 @@ class ListaSeguimientos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final key = ValueKey('lista_${seguimientos.length}');
-
+    
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 260),
       switchInCurve: Curves.easeOut,

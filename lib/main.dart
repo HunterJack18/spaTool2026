@@ -1,6 +1,3 @@
-
-import 'package:farmatodo/services/notification_services.dart';
-import 'package:farmatodo/services/workmanager_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,14 +11,8 @@ void main() async {
     url: dotenv.env['SUPABASE_URL']??'', 
     anonKey: dotenv.env['SUPABASE_ANNON_KEY']??''
   );
-  await NotificationService().initialize();
-  
-  await WorkManagerService.initialize();
-  
   runApp(const FarmatodoApp());
 }
-
-
 
 class FarmatodoApp extends StatelessWidget {
   const FarmatodoApp({super.key});
